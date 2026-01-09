@@ -1242,10 +1242,26 @@
     }
 
     function exportTripsCSV() {
-        const headers = ['סידור','קו','כיוון','יציאה','תכנון','אחוזון','ערך','פער','אי_ביצוע','אי_דיוק','המלצה','הגדרה','168_תכנון','168_אחוזון'];
+        const headers = ['סידור','קו','כיוון','יציאה','תכנון','אחוזון','ערך','פער','NE_נוכחי','NE_אחרי','IN_נוכחי','המלצה','הגדרה','168_תכנון','168_אחוזון'];
         let csv = headers.join(',') + '\n';
         tripsResults.forEach(t => {
-            csv += [t.duty_id,t.route,t.direction,t.start_time,t.planned,t.dynamic_pct,t.pct_value.toFixed(1),t.gap_to_next,t.prob_non_exec.toFixed(2),t.prob_inaccuracy.toFixed(2),t.rec,t.rec_duration,t.duty_168_plan?'V':'X',t.duty_168_actual?'V':'X'].join(',') + '\n';
+            csv += [
+                t.duty_id,
+                t.route,
+                t.direction,
+                t.start_time,
+                t.planned,
+                t.dynamic_pct,
+                t.pct_value ? t.pct_value.toFixed(1) : '-',
+                t.is_last ? 'אחרון' : t.gap_to_next,
+                t.prob_non_exec !== null ? t.prob_non_exec.toFixed(2) : '-',
+                t.prob_non_exec_rec !== null ? t.prob_non_exec_rec.toFixed(2) : '-',
+                t.prob_inaccuracy !== null ? t.prob_inaccuracy.toFixed(2) : '-',
+                t.rec,
+                t.rec_duration,
+                t.duty_168_plan ? 'V' : 'X',
+                t.duty_168_actual ? 'V' : 'X'
+            ].join(',') + '\n';
         });
         downloadCSV(csv, 'trips_analysis.csv');
     }
