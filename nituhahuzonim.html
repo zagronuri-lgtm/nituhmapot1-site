@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>כלי ניתוח אחוזונים | Transit Data Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-hover: #22222e;
+            --accent-emerald: #10b981;
+            --accent-teal: #14b8a6;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-orange: #f97316;
+            --accent-yellow: #eab308;
+            --accent-red: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #64748b;
+            --border-color: #2a2a3a;
+            --gradient-1: linear-gradient(135deg, #10b981, #06b6d4);
+            --gradient-2: linear-gradient(135deg, #3b82f6, #a855f7);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Heebo', sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1800px; margin: 0 auto; padding: 1.5rem; }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-1);
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .header p { color: var(--text-secondary); font-size: 0.9rem; }
+        
+        /* Upload Section */
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-zone:hover {
+            border-color: var(--accent-teal);
+            background: rgba(20, 184, 166, 0.05);
+        }
+        .upload-zone.has-files {
+            border-color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .upload-zone input { display: none; }
+        .upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .file-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; justify-content: center; }
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .btn-primary {
+            background: var(--gradient-1);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-teal);
+        }
+        .btn-sm {
+            padding: 0.35rem 0.7rem;
+            font-size: 0.8rem;
+        }
+        
+        /* Settings */
+        .settings-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+        .settings-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .setting-item label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.3rem;
+        }
+        .setting-item input, .setting-item select {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .setting-item input:focus, .setting-item select:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent-teal);
+        }
+        
+        /* Date chips */
+        .date-section { margin-top: 1rem; }
+        .date-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .date-chips-container {
+            min-height: 40px;
+            padding: 0.5rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+        }
+        .date-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        .date-chip-remove {
+            cursor: pointer;
+            color: var(--accent-red);
+            font-weight: bold;
+        }
+        
+        /* Progress */
+        .progress-container {
+            margin: 1rem 0;
+            display: none;
+        }
+        .progress-container.visible { display: block; }
+        .progress-bar {
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-1);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.3rem;
+            text-align: center;
+        }
+        
+        /* Results */
+        .results-section { display: none; }
+        .results-section.visible { display: block; }
+        
+        #columnMappingSection { display: none; }
+        #columnMappingSection.visible { display: block; }
+        
+        /* Summary Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+        }
+        .stat-card.emerald::before { background: var(--accent-emerald); }
+        .stat-card.blue::before { background: var(--accent-blue); }
+        .stat-card.purple::before { background: var(--accent-purple); }
+        .stat-card.orange::before { background: var(--accent-orange); }
+        .stat-card.teal::before { background: var(--accent-teal); }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+        .stat-value.emerald { color: var(--accent-emerald); }
+        .stat-value.blue { color: var(--accent-blue); }
+        .stat-value.purple { color: var(--accent-purple); }
+        .stat-value.orange { color: var(--accent-orange); }
+        .stat-value.teal { color: var(--accent-teal); }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.2rem;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .tab:hover { border-color: var(--accent-teal); }
+        .tab.active {
+            background: var(--gradient-1);
+            border-color: transparent;
+        }
+        
+        /* Tab Content */
+        .tab-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+        .tab-content.active { display: block; }
+        
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filters select, .filters input {
+            padding: 0.4rem 0.6rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.85rem;
+        }
+        
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+        th, td {
+            padding: 0.6rem 0.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+        th {
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        th:hover { color: var(--accent-teal); }
+        tbody tr:hover { background: var(--bg-hover); }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-emerald { background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); }
+        .badge-purple { background: rgba(168, 85, 247, 0.2); color: var(--accent-purple); }
+        .badge-orange { background: rgba(249, 115, 22, 0.2); color: var(--accent-orange); }
+        .badge-yellow { background: rgba(234, 179, 8, 0.2); color: var(--accent-yellow); }
+        .badge-red { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+        .badge-teal { background: rgba(20, 184, 166, 0.2); color: var(--accent-teal); }
+        .badge-gray { background: rgba(100, 116, 139, 0.2); color: var(--text-secondary); }
+        
+        /* Reliability indicator */
+        .reliability {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .reliability-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .reliability-dot.high { background: var(--accent-emerald); }
+        .reliability-dot.medium { background: var(--accent-yellow); }
+        .reliability-dot.low { background: var(--accent-red); }
+        
+        /* Info boxes */
+        .info-box {
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid var(--accent-teal);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+        .info-box.warning {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: var(--accent-yellow);
+        }
+        .info-box strong { color: var(--accent-teal); }
+        .info-box.warning strong { color: var(--accent-yellow); }
+        
+        /* Comparison table */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .comparison-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+        }
+        .comparison-card h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8rem;
+        }
+        .comparison-row:last-child { border-bottom: none; }
+        .comparison-label { color: var(--text-secondary); }
+        .comparison-value { font-weight: 600; }
+        
+        /* Histogram */
+        .histogram-container {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .histogram-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .histogram {
+            display: flex;
+            align-items: flex-end;
+            height: 120px;
+            gap: 2px;
+        }
+        .histogram-bar {
+            flex: 1;
+            background: var(--gradient-1);
+            border-radius: 2px 2px 0 0;
+            min-width: 8px;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+        .histogram-bar:hover { opacity: 0.8; }
+        .histogram-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Recommendation box */
+        .recommendation-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+            border: 1px solid var(--accent-emerald);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+        }
+        .recommendation-box h4 {
+            color: var(--accent-emerald);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .recommendation-box p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .recommendation-box ul {
+            margin: 0.5rem 0 0 1.5rem;
+            font-size: 0.85rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📊 כלי ניתוח אחוזונים</h1>
+            <p>ניתוח נתוני ביצוע היסטוריים • המלצות אחוזון ברמת דיוק מירבי • בחינת אמינות נתונים</p>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" multiple accept=".csv">
+                <div class="upload-icon">📁</div>
+                <div style="font-weight: 600;">גרור קבצי Actuals או לחץ לבחירה</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.3rem;">CSV files • ניתן להעלות מספר קבצים</div>
+            </div>
+            <div class="file-chips" id="fileChips"></div>
+        </div>
+        
+        <!-- Column Mapping Section -->
+        <div class="settings-section" id="columnMappingSection" style="display: none;">
+            <div class="settings-title">🔗 מיפוי עמודות</div>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">הכלי זיהה אוטומטית את העמודות. ניתן לתקן במידת הצורך:</p>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label>מספר אשכול</label>
+                    <select id="col_clusterId"></select>
+                </div>
+                <div class="setting-item">
+                    <label>שם אשכול *</label>
+                    <select id="col_clusterName"></select>
+                </div>
+                <div class="setting-item">
+                    <label>תת-אשכול / מק"ט קו</label>
+                    <select id="col_subCluster"></select>
+                </div>
+                <div class="setting-item">
+                    <label>מק"ט קו (חלופי)</label>
+                    <select id="col_routeId"></select>
+                </div>
+                <div class="setting-item">
+                    <label>מספר קו *</label>
+                    <select id="col_routeShortName"></select>
+                </div>
+                <div class="setting-item">
+                    <label>כיוון *</label>
+                    <select id="col_direction"></select>
+                </div>
+                <div class="setting-item">
+                    <label>תאריך *</label>
+                    <select id="col_tripDate"></select>
+                </div>
+                <div class="setting-item">
+                    <label>שעה *</label>
+                    <select id="col_tripTime"></select>
+                </div>
+                <div class="setting-item">
+                    <label>משך *</label>
+                    <select id="col_duration"></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div class="settings-section">
+            <div class="settings-title">⚙️ הגדרות סינון</div>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label>סף מינימום נתונים (אמינות גבוהה)</label>
+                    <input type="number" id="minDataHigh" value="30" min="10" max="100">
+                </div>
+                <div class="setting-item">
+                    <label>סף מינימום נתונים (אמינות בינונית)</label>
+                    <input type="number" id="minDataMedium" value="15" min="5" max="50">
+                </div>
+                <div class="setting-item">
+                    <label>משך מינימום נסיעה (דקות)</label>
+                    <input type="number" id="minDuration" value="5" min="1" max="30">
+                </div>
+                <div class="setting-item">
+                    <label>משך מקסימום נסיעה (דקות)</label>
+                    <input type="number" id="maxDuration" value="180" min="30" max="300">
+                </div>
+            </div>
+            
+            
+            <div class="date-section">
+                <label style="font-size: 0.85rem; font-weight: 600;">📅 החרגת תאריכים:</label>
+                <div class="date-controls">
+                    <input type="date" id="excludeDateInput">
+                    <button class="btn btn-secondary" onclick="addExcludeDate()">➕ הוסף</button>
+                    <button class="btn btn-secondary" onclick="clearExcludeDates()">🗑️ נקה</button>
+                </div>
+                <div class="date-controls" style="margin-top: 0.5rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">חגים:</span>
+                    <button class="btn btn-secondary btn-sm" onclick="addHolidays(2024)">🕎 2024</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addHolidays(2025)">🕎 2025</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addHolidays(2026)">🕎 2026</button>
+                </div>
+                <div class="date-controls" style="margin-top: 0.5rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">בין הזמנים:</span>
+                    <button class="btn btn-secondary btn-sm" onclick="addBeinHazmanim(2024)">🏖️ 2024</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addBeinHazmanim(2025)">🏖️ 2025</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addBeinHazmanim(2026)">🏖️ 2026</button>
+                </div>
+                <div class="date-controls" style="margin-top: 0.5rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-secondary);">חגים מוסלמים:</span>
+                    <button class="btn btn-secondary btn-sm" onclick="addMuslimHolidays(2024, 'all')">🌙 2024</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addMuslimHolidays(2025, 'all')">🌙 2025</button>
+                    <button class="btn btn-secondary btn-sm" onclick="addMuslimHolidays(2026, 'all')">🌙 2026</button>
+                </div>
+                <details style="margin-top: 0.3rem; font-size: 0.8rem;">
+                    <summary style="cursor: pointer; color: var(--text-secondary);">➕ חגים מוסלמים בנפרד...</summary>
+                    <div class="date-controls" style="margin-top: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2024, 'ramadan')">רמדאן 24</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2025, 'ramadan')">רמדאן 25</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2026, 'ramadan')">רמדאן 26</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2024, 'eid_fitr')">עיד פיטר 24</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2025, 'eid_fitr')">עיד פיטר 25</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2026, 'eid_fitr')">עיד פיטר 26</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2024, 'eid_adha')">עיד אדחא 24</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2025, 'eid_adha')">עיד אדחא 25</button>
+                        <button class="btn btn-secondary btn-sm" style="font-size: 0.7rem;" onclick="addMuslimHolidays(2026, 'eid_adha')">עיד אדחא 26</button>
+                    </div>
+                </details>
+                <div class="date-chips-container" id="dateChips"></div>
+                <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <label style="font-size: 0.85rem; font-weight: 500;">סינון שישי-שבת:</label>
+                    <select id="weekendFilter" style="padding: 0.4rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-primary); font-size: 0.85rem;">
+                        <option value="exclude">החרג שישי-שבת</option>
+                        <option value="all">כל הימים</option>
+                        <option value="only_friday">רק שישי</option>
+                        <option value="only_saturday">רק שבת</option>
+                        <option value="only_weekend">רק שישי-שבת</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analyze Button -->
+        <div style="text-align: center; margin: 1.5rem 0;">
+            <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()" disabled style="font-size: 1.1rem; padding: 0.8rem 2.5rem;">
+                🔍 נתח נתונים
+            </button>
+        </div>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">מעבד נתונים...</div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="stats-grid" id="summaryStats"></div>
+            
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('detailed')">📋 ניתוח מפורט</div>
+                <div class="tab" onclick="showTab('periods')">🌅 עונות יום</div>
+                <div class="tab" onclick="showTab('routes')">🚌 סיכום קווים</div>
+                <div class="tab" onclick="showTab('recommendations')">💡 המלצות</div>
+            </div>
+
+            <!-- Detailed Tab -->
+            <div class="tab-content active" id="detailedTab">
+                <div class="info-box">
+                    <strong>📊 ניתוח ברמת דיוק מירבי:</strong> אשכול + מק"ט/תת-אשכול + קו + כיוון + שעה. 
+                    עמודת "אמינות" מציינת כמה נתונים זמינים: 🟢 גבוהה (≥30) | 🟡 בינונית (15-29) | 🔴 נמוכה (&lt;15)
+                </div>
+                <div class="filters">
+                    <select id="filterCluster"><option value="">כל האשכולות</option></select>
+                    <select id="filterSubCluster"><option value="">כל המק"טים</option></select>
+                    <select id="filterRoute"><option value="">כל הקווים</option></select>
+                    <select id="filterDirection">
+                        <option value="">כל הכיוונים</option>
+                        <option value="1">כיוון 1</option>
+                        <option value="2">כיוון 2</option>
+                    </select>
+                    <select id="filterReliability">
+                        <option value="">כל רמות האמינות</option>
+                        <option value="high">🟢 גבוהה בלבד</option>
+                        <option value="medium">🟡 בינונית ומעלה</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="exportDetailedCSV()">📥 CSV</button>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortDetailed('cluster')">אשכול</th>
+                                <th onclick="sortDetailed('subCluster')">תת-אשכול/מק"ט</th>
+                                <th onclick="sortDetailed('route')">קו</th>
+                                <th onclick="sortDetailed('direction')">כיוון</th>
+                                <th onclick="sortDetailed('hour')">שעה</th>
+                                <th onclick="sortDetailed('count')">נתונים</th>
+                                <th>אמינות</th>
+                                <th onclick="sortDetailed('median')">חציון</th>
+                                <th onclick="sortDetailed('p80')">P80</th>
+                                <th onclick="sortDetailed('p85')">P85</th>
+                                <th onclick="sortDetailed('p90')">P90</th>
+                                <th onclick="sortDetailed('p95')">P95</th>
+                                <th onclick="sortDetailed('std')">סטיית תקן</th>
+                                <th onclick="sortDetailed('cv')">CV%</th>
+                                <th>המלצה</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailedBody"></tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+
+            <!-- Periods Tab -->
+            <div class="tab-content" id="periodsTab">
+                <div class="info-box">
+                    <strong>🌅 השוואת עונות יום:</strong> 
+                    בוקר מוקדם (04-06) | שיא בוקר (06-09) | שפל בוקר (09-12) | שיא צהריים (12-14) | שפל צהריים (14-16) | שיא ערב (16-19) | ערב (19-22) | לילה (22-04)
+                </div>
+                
+                <div class="filters">
+                    <select id="periodFilterCluster"><option value="">כל האשכולות</option></select>
+                    <select id="periodFilterSubCluster"><option value="">כל המק"טים</option></select>
+                    <select id="periodFilterRoute"><option value="">כל הקווים</option></select>
+                    <button class="btn btn-secondary" onclick="exportPeriodsCSV()">📥 CSV</button>
+                </div>
+                
+                <div id="periodsContent"></div>
+            </div>
+
+            <!-- Routes Tab -->
+            <div class="tab-content" id="routesTab">
+                <div class="info-box">
+                    <strong>🚌 סיכום לפי קו:</strong> ממוצע משוקלל של כל האחוזונים, עם ציון השונות (CV) בין שעות שונות.
+                </div>
+                <div class="filters">
+                    <select id="routesFilterCluster"><option value="">כל האשכולות</option></select>
+                    <select id="routesFilterSubCluster"><option value="">כל המק"טים</option></select>
+                    <select id="routesFilterRoute"><option value="">כל הקווים</option></select>
+                    <button class="btn btn-secondary" onclick="exportRoutesCSV()">📥 CSV</button>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortRoutes('cluster')">אשכול</th>
+                                <th onclick="sortRoutes('subCluster')">תת-אשכול/מק"ט</th>
+                                <th onclick="sortRoutes('route')">קו</th>
+                                <th onclick="sortRoutes('total_trips')">נסיעות</th>
+                                <th onclick="sortRoutes('hours_covered')">שעות מכוסות</th>
+                                <th onclick="sortRoutes('avg_duration')">ממוצע</th>
+                                <th onclick="sortRoutes('avg_p80')">P80 ממוצע</th>
+                                <th onclick="sortRoutes('avg_p90')">P90 ממוצע</th>
+                                <th onclick="sortRoutes('cv_between_hours')">שונות בין שעות</th>
+                                <th>המלצה כללית</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recommendations Tab -->
+            <div class="tab-content" id="recommendationsTab">
+                <div class="filters">
+                    <select id="recFilterCluster"><option value="">כל האשכולות</option></select>
+                    <select id="recFilterSubCluster"><option value="">כל המק"טים</option></select>
+                </div>
+                <div id="recommendationsContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>כלי ניתוח אחוזונים | גרסה 1.0</p>
+        <p>ניתוח נתוני ביצוע היסטוריים • המלצות מבוססות נתונים</p>
+    </footer>
+
+    <script>
+    // Israeli holidays (חגים)
+    const HOLIDAYS = {
+        2024: [
+            // פסח
+            '2024-04-23','2024-04-24','2024-04-25','2024-04-26','2024-04-27','2024-04-28','2024-04-29',
+            // יום העצמאות
+            '2024-05-14',
+            // ל"ג בעומר
+            '2024-05-26',
+            // שבועות
+            '2024-06-11','2024-06-12',
+            // ראש השנה
+            '2024-10-03','2024-10-04',
+            // יום כיפור
+            '2024-10-12',
+            // סוכות + שמחת תורה
+            '2024-10-17','2024-10-18','2024-10-19','2024-10-20','2024-10-21','2024-10-22','2024-10-23','2024-10-24'
+        ],
+        2025: [
+            // פסח
+            '2025-04-13','2025-04-14','2025-04-15','2025-04-16','2025-04-17','2025-04-18','2025-04-19',
+            // יום העצמאות
+            '2025-05-01',
+            // ל"ג בעומר
+            '2025-05-18',
+            // שבועות
+            '2025-06-02','2025-06-03',
+            // ראש השנה
+            '2025-09-23','2025-09-24',
+            // יום כיפור
+            '2025-10-02',
+            // סוכות + שמחת תורה
+            '2025-10-07','2025-10-08','2025-10-09','2025-10-10','2025-10-11','2025-10-12','2025-10-13','2025-10-14'
+        ],
+        2026: [
+            // פסח
+            '2026-04-02','2026-04-03','2026-04-04','2026-04-05','2026-04-06','2026-04-07','2026-04-08',
+            // יום העצמאות
+            '2026-04-22',
+            // ל"ג בעומר
+            '2026-05-07',
+            // שבועות
+            '2026-05-22','2026-05-23',
+            // ראש השנה
+            '2026-09-12','2026-09-13',
+            // יום כיפור
+            '2026-09-21',
+            // סוכות + שמחת תורה
+            '2026-09-26','2026-09-27','2026-09-28','2026-09-29','2026-09-30','2026-10-01','2026-10-02','2026-10-03'
+        ]
+    };
+    
+    // בין הזמנים (חופשות קיץ - יולי-אוגוסט)
+    const BEIN_HAZMANIM = {
+        2024: generateDateRange('2024-07-01', '2024-08-31'),
+        2025: generateDateRange('2025-07-01', '2025-08-31'),
+        2026: generateDateRange('2026-07-01', '2026-08-31')
+    };
+    
+    // חגים מוסלמים
+    const MUSLIM_HOLIDAYS = {
+        2024: {
+            ramadan: generateDateRange('2024-03-10', '2024-04-09'),
+            eid_fitr: ['2024-04-10', '2024-04-11', '2024-04-12'],
+            eid_adha: ['2024-06-16', '2024-06-17', '2024-06-18', '2024-06-19']
+        },
+        2025: {
+            ramadan: generateDateRange('2025-02-28', '2025-03-29'),
+            eid_fitr: ['2025-03-30', '2025-03-31', '2025-04-01'],
+            eid_adha: ['2025-06-06', '2025-06-07', '2025-06-08', '2025-06-09']
+        },
+        2026: {
+            ramadan: generateDateRange('2026-02-17', '2026-03-18'),
+            eid_fitr: ['2026-03-19', '2026-03-20', '2026-03-21'],
+            eid_adha: ['2026-05-26', '2026-05-27', '2026-05-28', '2026-05-29']
+        }
+    };
+    
+    function generateDateRange(startStr, endStr) {
+        const dates = [];
+        const start = new Date(startStr);
+        const end = new Date(endStr);
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            dates.push(d.toISOString().split('T')[0]);
+        }
+        return dates;
+    }
+
+    let rawData = [];
+    let excludeDates = new Set();
+    let detailedResults = [];
+    let periodsResults = [];
+    let routesResults = [];
+    let detailedSort = { col: 'route', dir: 'asc' };
+    let routesSort = { col: 'route', dir: 'asc' };
+    
+    // Column mapping - will be detected from file
+    let columnMapping = {
+        cluster: null,
+        subCluster: null,
+        routeId: null,
+        routeShortName: null,
+        direction: null,
+        tripDate: null,
+        tripTime: null,
+        duration: null
+    };
+
+    // File upload
+    document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+    async function handleFileUpload(e) {
+        const files = e.target.files;
+        if (files.length === 0) return;
+        
+        document.getElementById('uploadZone').classList.add('has-files');
+        document.getElementById('fileChips').innerHTML = Array.from(files).map(f => 
+            `<span class="chip">📄 ${f.name}</span>`
+        ).join('');
+        
+        rawData = [];
+        for (const file of files) {
+            const text = await file.text();
+            rawData = rawData.concat(parseCSV(text));
+        }
+        
+        // Detect columns
+        if (rawData.length > 0) {
+            detectColumns(rawData[0]);
+            showColumnMapping();
+        }
+        
+        document.getElementById('analyzeBtn').disabled = rawData.length === 0;
+    }
+    
+    function detectColumns(sampleRow) {
+        const keys = Object.keys(sampleRow);
+        
+        // Try to auto-detect columns
+        // ClusterId is the number, ClusterName is the name
+        columnMapping.clusterId = keys.find(k => /^cluster.?id$/i.test(k)) || null;
+        columnMapping.clusterName = keys.find(k => /cluster.?name|שם.?אשכול/i.test(k)) || null;
+        // Fallback: if only one cluster column exists, use it
+        if (!columnMapping.clusterId && !columnMapping.clusterName) {
+            const anyCluster = keys.find(k => /cluster|אשכול/i.test(k));
+            columnMapping.clusterName = anyCluster || null;
+        }
+        columnMapping.subCluster = keys.find(k => /sub.?cluster|תת.?אשכול/i.test(k)) || null;
+        columnMapping.routeId = keys.find(k => /route.?id|מק.*ט|license/i.test(k)) || null;
+        columnMapping.routeShortName = keys.find(k => /RouteShortName|route.?short|מספר.?קו/i.test(k)) || 'RouteShortName';
+        columnMapping.direction = keys.find(k => /direction|כיוון/i.test(k)) || 'Direction';
+        columnMapping.tripDate = keys.find(k => /TripSourceDate|date|תאריך/i.test(k)) || 'TripSourceDate';
+        columnMapping.tripTime = keys.find(k => /TripSourceTime|time|שעה/i.test(k)) || 'TripSourceTime';
+        columnMapping.duration = keys.find(k => /duration|משך/i.test(k)) || 'Duration';
+    }
+    
+    function showColumnMapping() {
+        const keys = rawData.length > 0 ? Object.keys(rawData[0]) : [];
+        const optionsHtml = '<option value="">-- לא קיים --</option>' + keys.map(k => `<option value="${k}">${k}</option>`).join('');
+        
+        document.getElementById('columnMappingSection').classList.add('visible');
+        
+        // Set dropdowns
+        ['clusterId', 'clusterName', 'subCluster', 'routeId', 'routeShortName', 'direction', 'tripDate', 'tripTime', 'duration'].forEach(field => {
+            const select = document.getElementById('col_' + field);
+            if (select) {
+                select.innerHTML = optionsHtml;
+                if (columnMapping[field]) {
+                    select.value = columnMapping[field];
+                }
+            }
+        });
+    }
+    
+    function updateColumnMapping() {
+        ['clusterId', 'clusterName', 'subCluster', 'routeId', 'routeShortName', 'direction', 'tripDate', 'tripTime', 'duration'].forEach(field => {
+            const select = document.getElementById('col_' + field);
+            if (select) {
+                columnMapping[field] = select.value || null;
+            }
+        });
+    }
+
+    function parseCSV(text) {
+        const lines = text.split('\n').filter(l => l.trim());
+        if (lines.length < 2) return [];
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        return lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+            const row = {};
+            headers.forEach((h, i) => row[h] = values[i] || '');
+            return row;
+        });
+    }
+
+    // Date exclusion functions
+    function addExcludeDate() {
+        const input = document.getElementById('excludeDateInput');
+        if (input.value) {
+            excludeDates.add(input.value);
+            renderExcludeDates();
+            input.value = '';
+        }
+    }
+
+    function addHolidays(year) {
+        if (HOLIDAYS[year]) {
+            HOLIDAYS[year].forEach(d => excludeDates.add(d));
+            renderExcludeDates();
+        }
+    }
+    
+    function addBeinHazmanim(year) {
+        if (BEIN_HAZMANIM[year]) {
+            BEIN_HAZMANIM[year].forEach(d => excludeDates.add(d));
+            renderExcludeDates();
+        }
+    }
+    
+    function addMuslimHolidays(year, type) {
+        if (!MUSLIM_HOLIDAYS[year]) return;
+        
+        const holidays = MUSLIM_HOLIDAYS[year];
+        
+        if (type === 'all') {
+            // הוסף את כל החגים המוסלמים של השנה
+            holidays.ramadan.forEach(d => excludeDates.add(d));
+            holidays.eid_fitr.forEach(d => excludeDates.add(d));
+            holidays.eid_adha.forEach(d => excludeDates.add(d));
+        } else if (holidays[type]) {
+            // הוסף חג ספציפי
+            holidays[type].forEach(d => excludeDates.add(d));
+        }
+        
+        renderExcludeDates();
+    }
+
+    function clearExcludeDates() {
+        excludeDates.clear();
+        renderExcludeDates();
+    }
+
+    function removeDate(date) {
+        excludeDates.delete(date);
+        renderExcludeDates();
+    }
+
+    function renderExcludeDates() {
+        const sortedDates = [...excludeDates].sort();
+        const count = sortedDates.length;
+        
+        if (count === 0) {
+            document.getElementById('dateChips').innerHTML = '<span style="color: var(--text-secondary); font-size: 0.8rem;">לא נבחרו תאריכים להחרגה</span>';
+            return;
+        }
+        
+        // Show count header
+        let html = `<div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">📅 ${count} תאריכים מוחרגים</div>`;
+        
+        // If too many dates, show only first and last few with option to expand
+        if (count > 20) {
+            const first10 = sortedDates.slice(0, 10);
+            const last5 = sortedDates.slice(-5);
+            
+            html += first10.map(d => 
+                `<span class="date-chip">
+                    <span class="date-chip-remove" onclick="removeDate('${d}')">✕</span>
+                    ${new Date(d).toLocaleDateString('he-IL')}
+                </span>`
+            ).join('');
+            
+            html += `<span style="padding: 0.3rem 0.6rem; color: var(--text-secondary);">... ${count - 15} נוספים ...</span>`;
+            
+            html += last5.map(d => 
+                `<span class="date-chip">
+                    <span class="date-chip-remove" onclick="removeDate('${d}')">✕</span>
+                    ${new Date(d).toLocaleDateString('he-IL')}
+                </span>`
+            ).join('');
+        } else {
+            html += sortedDates.map(d => 
+                `<span class="date-chip">
+                    <span class="date-chip-remove" onclick="removeDate('${d}')">✕</span>
+                    ${new Date(d).toLocaleDateString('he-IL')}
+                </span>`
+            ).join('');
+        }
+        
+        document.getElementById('dateChips').innerHTML = html;
+    }
+
+    function isExcludedDate(dateStr) {
+        if (!dateStr) return true;
+        try {
+            const parts = dateStr.split('/');
+            const date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+            const isoDate = date.toISOString().split('T')[0];
+            if (excludeDates.has(isoDate)) return true;
+            
+            const weekendFilter = document.getElementById('weekendFilter').value;
+            const day = date.getDay(); // 0=Sunday, 5=Friday, 6=Saturday
+            
+            switch (weekendFilter) {
+                case 'exclude':
+                    // החרג שישי-שבת
+                    if (day === 5 || day === 6) return true;
+                    break;
+                case 'only_friday':
+                    // רק שישי - החרג את כל מה שאינו שישי
+                    if (day !== 5) return true;
+                    break;
+                case 'only_saturday':
+                    // רק שבת - החרג את כל מה שאינו שבת
+                    if (day !== 6) return true;
+                    break;
+                case 'only_weekend':
+                    // רק שישי-שבת - החרג את כל מה שאינו שישי או שבת
+                    if (day !== 5 && day !== 6) return true;
+                    break;
+                case 'all':
+                default:
+                    // כל הימים - אל תחריג שום יום לפי יום בשבוע
+                    break;
+            }
+            return false;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    // Utility functions
+    function timeToMinutes(t) {
+        if (!t) return null;
+        const parts = t.toString().split(':');
+        return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+
+    function parseDuration(d) {
+        if (!d || d === '#') return null;
+        const parts = d.toString().split(':');
+        if (parts.length >= 2) {
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+        return null;
+    }
+
+    function percentile(arr, p) {
+        const sorted = [...arr].sort((a, b) => a - b);
+        const idx = (p / 100) * (sorted.length - 1);
+        const lower = Math.floor(idx);
+        const frac = idx - lower;
+        if (lower + 1 < sorted.length) {
+            return sorted[lower] * (1 - frac) + sorted[lower + 1] * frac;
+        }
+        return sorted[lower];
+    }
+
+    function mean(arr) {
+        return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    function std(arr) {
+        const m = mean(arr);
+        return Math.sqrt(arr.reduce((sum, x) => sum + Math.pow(x - m, 2), 0) / arr.length);
+    }
+
+    function getTimePeriod(hour) {
+        if (hour >= 4 && hour < 6) return { name: 'בוקר מוקדם', code: 'early_morning', icon: '🌄' };
+        if (hour >= 6 && hour < 9) return { name: 'שיא בוקר', code: 'morning_peak', icon: '🌅' };
+        if (hour >= 9 && hour < 12) return { name: 'שפל בוקר', code: 'late_morning', icon: '☀️' };
+        if (hour >= 12 && hour < 14) return { name: 'שיא צהריים', code: 'midday_peak', icon: '🌞' };
+        if (hour >= 14 && hour < 16) return { name: 'שפל צהריים', code: 'afternoon', icon: '⛅' };
+        if (hour >= 16 && hour < 19) return { name: 'שיא ערב', code: 'evening_peak', icon: '🌆' };
+        if (hour >= 19 && hour < 22) return { name: 'ערב', code: 'evening', icon: '🌙' };
+        return { name: 'לילה', code: 'night', icon: '🌃' };
+    }
+
+    function getReliabilityLevel(count) {
+        const high = parseInt(document.getElementById('minDataHigh').value);
+        const medium = parseInt(document.getElementById('minDataMedium').value);
+        if (count >= high) return { level: 'high', label: '🟢', text: 'גבוהה' };
+        if (count >= medium) return { level: 'medium', label: '🟡', text: 'בינונית' };
+        return { level: 'low', label: '🔴', text: 'נמוכה' };
+    }
+
+    function getRecommendedPercentile(cv, reliability) {
+        // High variance = need higher percentile
+        // Low reliability = need higher percentile for safety
+        if (reliability === 'low') return { pct: 95, reason: 'נתונים מועטים' };
+        if (cv > 30) return { pct: 95, reason: 'שונות גבוהה' };
+        if (cv > 20) return { pct: 90, reason: 'שונות בינונית' };
+        if (cv > 15) return { pct: 85, reason: 'שונות סבירה' };
+        return { pct: 80, reason: 'יציבות גבוהה' };
+    }
+
+    // Main analysis function
+    async function analyze() {
+        const btn = document.getElementById('analyzeBtn');
+        const progress = document.getElementById('progressContainer');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        
+        // Update column mapping from UI
+        updateColumnMapping();
+        
+        btn.disabled = true;
+        btn.textContent = '⏳ מעבד...';
+        progress.classList.add('visible');
+        
+        await new Promise(r => setTimeout(r, 10));
+        progressFill.style.width = '10%';
+        progressText.textContent = 'מסנן נתונים...';
+
+        const minDuration = parseInt(document.getElementById('minDuration').value);
+        const maxDuration = parseInt(document.getElementById('maxDuration').value);
+
+        // Filter data
+        const filtered = rawData.filter(row => {
+            const dateCol = columnMapping.tripDate || 'TripSourceDate';
+            if (isExcludedDate(row[dateCol])) return false;
+            
+            const durCol = columnMapping.duration || 'Duration';
+            const dur = parseDuration(row[durCol]);
+            if (!dur || dur < minDuration || dur > maxDuration) return false;
+            
+            const routeCol = columnMapping.routeShortName || 'RouteShortName';
+            const dirCol = columnMapping.direction || 'Direction';
+            const route = parseInt(row[routeCol]);
+            const dir = parseInt(row[dirCol]);
+            if (isNaN(route) || isNaN(dir)) return false;
+            return true;
+        });
+
+        await new Promise(r => setTimeout(r, 10));
+        progressFill.style.width = '30%';
+        progressText.textContent = 'מחשב אחוזונים...';
+
+        // Group by cluster-route-direction-hour
+        const groups = {};
+        for (const row of filtered) {
+            // Get cluster name (prefer name over id)
+            const clusterName = columnMapping.clusterName ? (row[columnMapping.clusterName] || '') : '';
+            const clusterId = columnMapping.clusterId ? (row[columnMapping.clusterId] || '') : '';
+            const cluster = clusterName || clusterId || 'לא ידוע';
+            
+            const subCluster = columnMapping.subCluster ? (row[columnMapping.subCluster] || '') : '';
+            const routeId = columnMapping.routeId ? (row[columnMapping.routeId] || '') : '';
+            const route = parseInt(row[columnMapping.routeShortName || 'RouteShortName']);
+            const dir = parseInt(row[columnMapping.direction || 'Direction']);
+            const time = timeToMinutes(row[columnMapping.tripTime || 'TripSourceTime']);
+            const hour = Math.floor(time / 60);
+            const dur = parseDuration(row[columnMapping.duration || 'Duration']);
+            
+            // Create unique key including cluster
+            const key = `${cluster}|${subCluster || routeId}|${route}-${dir}-${hour}`;
+            if (!groups[key]) {
+                groups[key] = { 
+                    cluster, 
+                    subCluster: subCluster || routeId || '-',
+                    route, 
+                    direction: dir, 
+                    hour, 
+                    durations: [] 
+                };
+            }
+            groups[key].durations.push(dur);
+        }
+
+        await new Promise(r => setTimeout(r, 10));
+        progressFill.style.width = '50%';
+        progressText.textContent = 'מנתח התפלגויות...';
+
+        // Calculate percentiles for each group
+        detailedResults = [];
+        for (const key of Object.keys(groups)) {
+            const g = groups[key];
+            const durs = g.durations;
+            const reliability = getReliabilityLevel(durs.length);
+            const m = mean(durs);
+            const s = std(durs);
+            const cv = (s / m) * 100;
+            const rec = getRecommendedPercentile(cv, reliability.level);
+            
+            detailedResults.push({
+                cluster: g.cluster,
+                subCluster: g.subCluster,
+                route: g.route,
+                direction: g.direction,
+                hour: g.hour,
+                count: durs.length,
+                reliability: reliability,
+                min: Math.min(...durs),
+                max: Math.max(...durs),
+                mean: m,
+                median: percentile(durs, 50),
+                p80: percentile(durs, 80),
+                p85: percentile(durs, 85),
+                p90: percentile(durs, 90),
+                p95: percentile(durs, 95),
+                std: s,
+                cv: cv,
+                recommendation: rec,
+                durations: durs
+            });
+        }
+
+        await new Promise(r => setTimeout(r, 10));
+        progressFill.style.width = '70%';
+        progressText.textContent = 'מחשב עונות יום...';
+
+        // Calculate periods analysis
+        const periodGroups = {};
+        for (const row of filtered) {
+            // Get cluster name (prefer name over id)
+            const clusterName = columnMapping.clusterName ? (row[columnMapping.clusterName] || '') : '';
+            const clusterId = columnMapping.clusterId ? (row[columnMapping.clusterId] || '') : '';
+            const cluster = clusterName || clusterId || 'לא ידוע';
+            
+            const subCluster = columnMapping.subCluster ? (row[columnMapping.subCluster] || '') : '';
+            const routeId = columnMapping.routeId ? (row[columnMapping.routeId] || '') : '';
+            const route = parseInt(row[columnMapping.routeShortName || 'RouteShortName']);
+            const time = timeToMinutes(row[columnMapping.tripTime || 'TripSourceTime']);
+            const hour = Math.floor(time / 60);
+            const period = getTimePeriod(hour);
+            const dur = parseDuration(row[columnMapping.duration || 'Duration']);
+            
+            const key = `${cluster}|${subCluster || routeId}|${route}-${period.code}`;
+            if (!periodGroups[key]) {
+                periodGroups[key] = { 
+                    cluster, 
+                    subCluster: subCluster || routeId || '-',
+                    route, 
+                    period, 
+                    durations: [] 
+                };
+            }
+            periodGroups[key].durations.push(dur);
+        }
+
+        periodsResults = [];
+        for (const key of Object.keys(periodGroups)) {
+            const g = periodGroups[key];
+            const durs = g.durations;
+            if (durs.length < 5) continue;
+            
+            const m = mean(durs);
+            const s = std(durs);
+            
+            periodsResults.push({
+                cluster: g.cluster,
+                subCluster: g.subCluster,
+                route: g.route,
+                period: g.period,
+                count: durs.length,
+                mean: m,
+                median: percentile(durs, 50),
+                p80: percentile(durs, 80),
+                p85: percentile(durs, 85),
+                p90: percentile(durs, 90),
+                p95: percentile(durs, 95),
+                std: s,
+                cv: (s / m) * 100
+            });
+        }
+
+        await new Promise(r => setTimeout(r, 10));
+        progressFill.style.width = '85%';
+        progressText.textContent = 'מסכם קווים...';
+
+        // Calculate routes summary - grouped by cluster + route
+        const routeGroups = {};
+        for (const r of detailedResults) {
+            const key = `${r.cluster}|${r.subCluster}|${r.route}`;
+            if (!routeGroups[key]) {
+                routeGroups[key] = { 
+                    cluster: r.cluster, 
+                    subCluster: r.subCluster,
+                    route: r.route, 
+                    items: [] 
+                };
+            }
+            routeGroups[key].items.push(r);
+        }
+
+        routesResults = [];
+        for (const key of Object.keys(routeGroups)) {
+            const g = routeGroups[key];
+            const items = g.items;
+            const totalTrips = items.reduce((sum, i) => sum + i.count, 0);
+            const hoursWithData = items.filter(i => i.reliability.level !== 'low').length;
+            
+            // Weighted averages
+            const avgDur = items.reduce((sum, i) => sum + i.mean * i.count, 0) / totalTrips;
+            const avgP80 = items.reduce((sum, i) => sum + i.p80 * i.count, 0) / totalTrips;
+            const avgP90 = items.reduce((sum, i) => sum + i.p90 * i.count, 0) / totalTrips;
+            
+            // CV between hours (how much P90 varies across hours)
+            const p90Values = items.filter(i => i.count >= 10).map(i => i.p90);
+            const cvBetweenHours = p90Values.length > 1 ? (std(p90Values) / mean(p90Values)) * 100 : 0;
+            
+            let overallRec;
+            if (cvBetweenHours > 25) {
+                overallRec = 'אחוזון משתנה לפי שעה';
+            } else if (cvBetweenHours > 15) {
+                overallRec = 'P90 כללי + התאמות';
+            } else {
+                overallRec = 'P85 אחיד';
+            }
+            
+            routesResults.push({
+                cluster: g.cluster,
+                subCluster: g.subCluster,
+                route: g.route,
+                total_trips: totalTrips,
+                hours_covered: hoursWithData,
+                avg_duration: avgDur,
+                avg_p80: avgP80,
+                avg_p90: avgP90,
+                cv_between_hours: cvBetweenHours,
+                recommendation: overallRec,
+                items: items
+            });
+        }
+
+        progressFill.style.width = '100%';
+        progressText.textContent = 'הושלם!';
+
+        // Render results
+        renderSummary(filtered.length);
+        renderDetailed();
+        renderPeriods();
+        renderRoutes();
+        renderRecommendations();
+        populateFilters();
+
+        document.getElementById('resultsSection').classList.add('visible');
+        progress.classList.remove('visible');
+        btn.disabled = false;
+        btn.textContent = '🔍 נתח נתונים';
+    }
+
+    function renderSummary(totalTrips) {
+        const uniqueRoutes = new Set(detailedResults.map(r => r.route)).size;
+        const uniqueCombinations = detailedResults.length;
+        const highReliability = detailedResults.filter(r => r.reliability.level === 'high').length;
+        const avgCV = mean(detailedResults.map(r => r.cv));
+        
+        document.getElementById('summaryStats').innerHTML = `
+            <div class="stat-card emerald">
+                <div class="stat-value emerald">${totalTrips.toLocaleString()}</div>
+                <div class="stat-label">נסיעות נותחו</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-value blue">${uniqueRoutes}</div>
+                <div class="stat-label">קווים</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-value purple">${uniqueCombinations}</div>
+                <div class="stat-label">שילובי קו-כיוון-שעה</div>
+            </div>
+            <div class="stat-card teal">
+                <div class="stat-value teal">${highReliability}</div>
+                <div class="stat-label">אמינות גבוהה 🟢</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-value orange">${avgCV.toFixed(1)}%</div>
+                <div class="stat-label">CV ממוצע</div>
+            </div>
+        `;
+    }
+
+    function renderDetailed() {
+        const clusterFilter = document.getElementById('filterCluster').value;
+        const subClusterFilter = document.getElementById('filterSubCluster').value;
+        const routeFilter = document.getElementById('filterRoute').value;
+        const dirFilter = document.getElementById('filterDirection').value;
+        const relFilter = document.getElementById('filterReliability').value;
+        
+        let filtered = detailedResults.filter(r => {
+            if (clusterFilter && r.cluster !== clusterFilter) return false;
+            if (subClusterFilter && r.subCluster !== subClusterFilter) return false;
+            if (routeFilter && r.route != routeFilter) return false;
+            if (dirFilter && r.direction != dirFilter) return false;
+            if (relFilter === 'high' && r.reliability.level !== 'high') return false;
+            if (relFilter === 'medium' && r.reliability.level === 'low') return false;
+            return true;
+        });
+        
+        filtered.sort((a, b) => {
+            let av = a[detailedSort.col];
+            let bv = b[detailedSort.col];
+            if (typeof av === 'object') av = av.level;
+            if (typeof bv === 'object') bv = bv.level;
+            if (detailedSort.dir === 'asc') return av > bv ? 1 : -1;
+            return av < bv ? 1 : -1;
+        });
+        
+        document.getElementById('detailedBody').innerHTML = filtered.slice(0, 500).map(r => {
+            const recBadge = r.recommendation.pct === 95 ? 'badge-red' :
+                            r.recommendation.pct === 90 ? 'badge-orange' :
+                            r.recommendation.pct === 85 ? 'badge-yellow' : 'badge-emerald';
+            
+            return `<tr>
+                <td>${r.cluster}</td>
+                <td>${r.subCluster}</td>
+                <td><strong>קו ${r.route}</strong></td>
+                <td>${r.direction}</td>
+                <td>${String(r.hour).padStart(2, '0')}:00</td>
+                <td>${r.count}</td>
+                <td><span class="reliability"><span class="reliability-dot ${r.reliability.level}"></span>${r.reliability.text}</span></td>
+                <td>${r.median.toFixed(1)}'</td>
+                <td>${r.p80.toFixed(1)}'</td>
+                <td>${r.p85.toFixed(1)}'</td>
+                <td><strong>${r.p90.toFixed(1)}'</strong></td>
+                <td>${r.p95.toFixed(1)}'</td>
+                <td>${r.std.toFixed(1)}'</td>
+                <td style="color: ${r.cv > 25 ? 'var(--accent-red)' : r.cv > 15 ? 'var(--accent-yellow)' : 'var(--accent-emerald)'}">${r.cv.toFixed(1)}%</td>
+                <td><span class="badge ${recBadge}">P${r.recommendation.pct}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderPeriods() {
+        const clusterFilter = document.getElementById('periodFilterCluster')?.value || '';
+        const subClusterFilter = document.getElementById('periodFilterSubCluster')?.value || '';
+        const routeFilter = document.getElementById('periodFilterRoute')?.value || '';
+        
+        // Group by cluster + route
+        const byRoute = {};
+        for (const p of periodsResults) {
+            if (clusterFilter && p.cluster !== clusterFilter) continue;
+            if (subClusterFilter && p.subCluster !== subClusterFilter) continue;
+            if (routeFilter && p.route != routeFilter) continue;
+            const key = `${p.cluster}|${p.subCluster}|${p.route}`;
+            if (!byRoute[key]) byRoute[key] = { cluster: p.cluster, subCluster: p.subCluster, route: p.route, periods: [] };
+            byRoute[key].periods.push(p);
+        }
+        
+        let html = '';
+        
+        for (const key of Object.keys(byRoute).sort()) {
+            const group = byRoute[key];
+            const periods = group.periods;
+            const periodOrder = ['early_morning', 'morning_peak', 'late_morning', 'midday_peak', 'afternoon', 'evening_peak', 'evening', 'night'];
+            periods.sort((a, b) => periodOrder.indexOf(a.period.code) - periodOrder.indexOf(b.period.code));
+            
+            html += `
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="margin-bottom: 1rem;">🚌 ${group.cluster} | ${group.subCluster} | קו ${group.route}</h3>
+                    <div class="comparison-grid">
+            `;
+            
+            for (const p of periods) {
+                const cvColor = p.cv > 25 ? 'var(--accent-red)' : p.cv > 15 ? 'var(--accent-yellow)' : 'var(--accent-emerald)';
+                
+                html += `
+                    <div class="comparison-card">
+                        <h4>${p.period.icon} ${p.period.name}</h4>
+                        <div class="comparison-row">
+                            <span class="comparison-label">נסיעות</span>
+                            <span class="comparison-value">${p.count}</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">ממוצע</span>
+                            <span class="comparison-value">${p.mean.toFixed(1)}'</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">P80</span>
+                            <span class="comparison-value">${p.p80.toFixed(1)}'</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">P85</span>
+                            <span class="comparison-value">${p.p85.toFixed(1)}'</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">P90</span>
+                            <span class="comparison-value" style="font-size: 1.1rem;">${p.p90.toFixed(1)}'</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">P95</span>
+                            <span class="comparison-value">${p.p95.toFixed(1)}'</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">CV</span>
+                            <span class="comparison-value" style="color: ${cvColor}">${p.cv.toFixed(1)}%</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `</div></div>`;
+        }
+        
+        document.getElementById('periodsContent').innerHTML = html || '<p style="color: var(--text-secondary);">אין נתונים להצגה</p>';
+    }
+
+    function renderRoutes() {
+        const clusterFilter = document.getElementById('routesFilterCluster')?.value || '';
+        const subClusterFilter = document.getElementById('routesFilterSubCluster')?.value || '';
+        const routeFilter = document.getElementById('routesFilterRoute')?.value || '';
+        
+        let filtered = routesResults.filter(r => {
+            if (clusterFilter && r.cluster !== clusterFilter) return false;
+            if (subClusterFilter && r.subCluster !== subClusterFilter) return false;
+            if (routeFilter && r.route != routeFilter) return false;
+            return true;
+        });
+        
+        filtered.sort((a, b) => {
+            const av = a[routesSort.col];
+            const bv = b[routesSort.col];
+            if (routesSort.dir === 'asc') return av > bv ? 1 : -1;
+            return av < bv ? 1 : -1;
+        });
+        
+        document.getElementById('routesBody').innerHTML = filtered.map(r => {
+            const cvColor = r.cv_between_hours > 25 ? 'var(--accent-red)' : 
+                           r.cv_between_hours > 15 ? 'var(--accent-yellow)' : 'var(--accent-emerald)';
+            
+            return `<tr>
+                <td>${r.cluster}</td>
+                <td>${r.subCluster}</td>
+                <td><strong>קו ${r.route}</strong></td>
+                <td>${r.total_trips.toLocaleString()}</td>
+                <td>${r.hours_covered}</td>
+                <td>${r.avg_duration.toFixed(1)}'</td>
+                <td>${r.avg_p80.toFixed(1)}'</td>
+                <td><strong>${r.avg_p90.toFixed(1)}'</strong></td>
+                <td style="color: ${cvColor}">${r.cv_between_hours.toFixed(1)}%</td>
+                <td><span class="badge ${r.cv_between_hours > 25 ? 'badge-purple' : r.cv_between_hours > 15 ? 'badge-blue' : 'badge-emerald'}">${r.recommendation}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function renderRecommendations() {
+        // Analyze off-peak question
+        const offPeakPeriods = periodsResults.filter(p => 
+            p.period.code === 'early_morning' || p.period.code === 'night' || p.period.code === 'evening' || 
+            p.period.code === 'late_morning' || p.period.code === 'afternoon'
+        );
+        const peakPeriods = periodsResults.filter(p => 
+            p.period.code === 'morning_peak' || p.period.code === 'evening_peak' || p.period.code === 'midday_peak'
+        );
+        
+        let offPeakAnalysis = '';
+        if (offPeakPeriods.length > 0 && peakPeriods.length > 0) {
+            const avgOffPeakCV = mean(offPeakPeriods.map(p => p.cv));
+            const avgPeakCV = mean(peakPeriods.map(p => p.cv));
+            const avgOffPeakP90 = mean(offPeakPeriods.map(p => p.p90));
+            const avgPeakP90 = mean(peakPeriods.map(p => p.p90));
+            
+            const offPeakHasLessData = mean(offPeakPeriods.map(p => p.count)) < mean(peakPeriods.map(p => p.count)) * 0.5;
+            
+            offPeakAnalysis = `
+                <div class="recommendation-box" style="margin-bottom: 1rem; ${avgOffPeakCV > avgPeakCV ? 'border-color: var(--accent-yellow);' : ''}">
+                    <h4>🌙 ניתוח שעות שפל vs שיא</h4>
+                    <div class="comparison-grid" style="margin: 1rem 0;">
+                        <div class="comparison-card">
+                            <h4>שעות שפל</h4>
+                            <div class="comparison-row"><span class="comparison-label">P90 ממוצע</span><span class="comparison-value">${avgOffPeakP90.toFixed(1)}'</span></div>
+                            <div class="comparison-row"><span class="comparison-label">CV ממוצע</span><span class="comparison-value">${avgOffPeakCV.toFixed(1)}%</span></div>
+                            <div class="comparison-row"><span class="comparison-label">נסיעות/עונה</span><span class="comparison-value">${Math.round(mean(offPeakPeriods.map(p => p.count)))}</span></div>
+                        </div>
+                        <div class="comparison-card">
+                            <h4>שעות שיא</h4>
+                            <div class="comparison-row"><span class="comparison-label">P90 ממוצע</span><span class="comparison-value">${avgPeakP90.toFixed(1)}'</span></div>
+                            <div class="comparison-row"><span class="comparison-label">CV ממוצע</span><span class="comparison-value">${avgPeakCV.toFixed(1)}%</span></div>
+                            <div class="comparison-row"><span class="comparison-label">נסיעות/עונה</span><span class="comparison-value">${Math.round(mean(peakPeriods.map(p => p.count)))}</span></div>
+                        </div>
+                    </div>
+                    <p><strong>מסקנה:</strong> 
+                        ${avgOffPeakCV > avgPeakCV * 1.2 ? 
+                            `⚠️ השונות בשעות השפל גבוהה יותר (${avgOffPeakCV.toFixed(0)}% vs ${avgPeakCV.toFixed(0)}%). ${offPeakHasLessData ? 'זה כנראה בגלל פחות נתונים - מומלץ P90 או P95 בשעות אלו.' : 'יש שונות אמיתית - מומלץ אחוזון גבוה יותר בשעות אלו.'}` :
+                            avgOffPeakCV < avgPeakCV * 0.8 ?
+                            `✅ השונות בשעות השפל נמוכה יותר (${avgOffPeakCV.toFixed(0)}% vs ${avgPeakCV.toFixed(0)}%). הנסיעות יציבות יותר - אפשר להשתמש ב-P80 בשעות אלו.` :
+                            `ℹ️ השונות דומה בין שעות שיא לשפל. אין סיבה סטטיסטית להעלות אחוזון בשעות השפל.`
+                        }
+                    </p>
+                    ${offPeakHasLessData ? `<p style="color: var(--accent-yellow); margin-top: 0.5rem;">⚠️ שים לב: יש פחות נתונים בשעות השפל, מה שמגדיל את אי-הוודאות.</p>` : ''}
+                </div>
+            `;
+        }
+        
+        // Low reliability warning - group by cluster
+        const lowReliability = detailedResults.filter(r => r.reliability.level === 'low');
+        let lowReliabilityWarning = '';
+        if (lowReliability.length > 0) {
+            // Group by cluster for summary
+            const byCluster = {};
+            lowReliability.forEach(r => {
+                if (!byCluster[r.cluster]) byCluster[r.cluster] = [];
+                byCluster[r.cluster].push(r);
+            });
+            
+            lowReliabilityWarning = `
+                <div class="info-box warning">
+                    <strong>⚠️ אזהרה:</strong> יש ${lowReliability.length} שילובים עם פחות מ-15 נתונים. 
+                    לשילובים אלו מומלץ להשתמש ב-P95 או בזמן מתוכנן.
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem;">
+                        ${Object.entries(byCluster).map(([cluster, items]) => 
+                            `<strong>${cluster}:</strong> ${items.length} שילובים`
+                        ).join(' | ')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // High variance routes
+        const highVarianceRoutes = routesResults.filter(r => r.cv_between_hours > 25);
+        let highVarianceSection = '';
+        if (highVarianceRoutes.length > 0) {
+            highVarianceSection = `
+                <div class="recommendation-box" style="border-color: var(--accent-purple);">
+                    <h4 style="color: var(--accent-purple);">📊 קווים עם שונות גבוהה בין שעות</h4>
+                    <p>הקווים הבאים מראים הבדלים משמעותיים באחוזונים בין שעות שונות של היום. מומלץ להשתמש באחוזון ברמת שעה ולא אחוזון אחיד:</p>
+                    <div class="table-wrapper" style="max-height: 300px;">
+                        <table>
+                            <thead><tr><th>אשכול</th><th>מק"ט</th><th>קו</th><th>CV בין שעות</th><th>המלצה</th></tr></thead>
+                            <tbody>
+                                ${highVarianceRoutes.map(r => `<tr>
+                                    <td>${r.cluster}</td>
+                                    <td>${r.subCluster}</td>
+                                    <td><strong>קו ${r.route}</strong></td>
+                                    <td style="color: var(--accent-red);">${r.cv_between_hours.toFixed(1)}%</td>
+                                    <td><span class="badge badge-purple">אחוזון לפי שעה</span></td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Stable routes
+        const stableRoutes = routesResults.filter(r => r.cv_between_hours < 10);
+        let stableSection = '';
+        if (stableRoutes.length > 0) {
+            stableSection = `
+                <div class="recommendation-box">
+                    <h4>✅ קווים יציבים</h4>
+                    <p>הקווים הבאים מראים יציבות גבוהה לאורך היום. אפשר להשתמש באחוזון אחיד:</p>
+                    <div class="table-wrapper" style="max-height: 300px;">
+                        <table>
+                            <thead><tr><th>אשכול</th><th>מק"ט</th><th>קו</th><th>CV בין שעות</th><th>P85 מומלץ</th></tr></thead>
+                            <tbody>
+                                ${stableRoutes.map(r => `<tr>
+                                    <td>${r.cluster}</td>
+                                    <td>${r.subCluster}</td>
+                                    <td><strong>קו ${r.route}</strong></td>
+                                    <td style="color: var(--accent-emerald);">${r.cv_between_hours.toFixed(1)}%</td>
+                                    <td><strong>${r.avg_p90.toFixed(0)}'</strong></td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Medium variance routes
+        const mediumVarianceRoutes = routesResults.filter(r => r.cv_between_hours >= 10 && r.cv_between_hours <= 25);
+        let mediumVarianceSection = '';
+        if (mediumVarianceRoutes.length > 0) {
+            mediumVarianceSection = `
+                <div class="recommendation-box" style="border-color: var(--accent-blue);">
+                    <h4 style="color: var(--accent-blue);">📈 קווים עם שונות בינונית</h4>
+                    <p>הקווים הבאים מראים שונות בינונית. מומלץ P90 כללי עם התאמות לשעות קיצון:</p>
+                    <div class="table-wrapper" style="max-height: 300px;">
+                        <table>
+                            <thead><tr><th>אשכול</th><th>מק"ט</th><th>קו</th><th>CV בין שעות</th><th>P90 ממוצע</th></tr></thead>
+                            <tbody>
+                                ${mediumVarianceRoutes.map(r => `<tr>
+                                    <td>${r.cluster}</td>
+                                    <td>${r.subCluster}</td>
+                                    <td><strong>קו ${r.route}</strong></td>
+                                    <td style="color: var(--accent-yellow);">${r.cv_between_hours.toFixed(1)}%</td>
+                                    <td><strong>${r.avg_p90.toFixed(0)}'</strong></td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+        
+        document.getElementById('recommendationsContent').innerHTML = `
+            ${lowReliabilityWarning}
+            ${offPeakAnalysis}
+            ${highVarianceSection}
+            ${mediumVarianceSection}
+            ${stableSection}
+            
+            <div class="recommendation-box" style="margin-top: 1rem; border-color: var(--accent-blue);">
+                <h4 style="color: var(--accent-blue);">📋 סיכום המלצות</h4>
+                <ul>
+                    <li><strong>קווים יציבים (CV &lt; 10%):</strong> השתמש ב-P85 אחיד לכל שעות היום</li>
+                    <li><strong>קווים עם שונות בינונית (CV 10-25%):</strong> השתמש ב-P90 עם התאמות קלות</li>
+                    <li><strong>קווים עם שונות גבוהה (CV &gt; 25%):</strong> השתמש באחוזון ברמת שעה</li>
+                    <li><strong>נתונים מועטים (&lt; 15):</strong> השתמש ב-P95 או בזמן מתוכנן</li>
+                </ul>
+            </div>
+        `;
+    }
+
+    function populateFilters() {
+        updateDetailedFilters();
+        updatePeriodFilters();
+        updateRoutesFilters();
+    }
+    
+    function updateDetailedFilters() {
+        const clusterFilter = document.getElementById('filterCluster').value;
+        const subClusterFilter = document.getElementById('filterSubCluster').value;
+        
+        // Get all unique values
+        const allClusters = [...new Set(detailedResults.map(r => r.cluster))].sort();
+        
+        // Filter subClusters based on selected cluster
+        const filteredForSubCluster = clusterFilter 
+            ? detailedResults.filter(r => r.cluster === clusterFilter)
+            : detailedResults;
+        const subClusters = [...new Set(filteredForSubCluster.map(r => r.subCluster))].filter(s => s && s !== '-').sort();
+        
+        // Filter routes based on selected cluster and subCluster
+        const filteredForRoute = detailedResults.filter(r => {
+            if (clusterFilter && r.cluster !== clusterFilter) return false;
+            if (subClusterFilter && r.subCluster !== subClusterFilter) return false;
+            return true;
+        });
+        const routes = [...new Set(filteredForRoute.map(r => r.route))].sort((a, b) => a - b);
+        
+        // Update cluster dropdown (always show all)
+        const clusterSelect = document.getElementById('filterCluster');
+        const currentCluster = clusterSelect.value;
+        clusterSelect.innerHTML = '<option value="">כל האשכולות</option>' + allClusters.map(c => 
+            `<option value="${c}" ${c === currentCluster ? 'selected' : ''}>${c}</option>`
+        ).join('');
+        
+        // Update subCluster dropdown
+        const subClusterSelect = document.getElementById('filterSubCluster');
+        const currentSubCluster = subClusterSelect.value;
+        const validSubCluster = subClusters.includes(currentSubCluster) ? currentSubCluster : '';
+        subClusterSelect.innerHTML = '<option value="">כל המק"טים</option>' + subClusters.map(s => 
+            `<option value="${s}" ${s === validSubCluster ? 'selected' : ''}>${s}</option>`
+        ).join('');
+        if (!subClusters.includes(currentSubCluster)) subClusterSelect.value = '';
+        
+        // Update route dropdown
+        const routeSelect = document.getElementById('filterRoute');
+        const currentRoute = routeSelect.value;
+        const validRoute = routes.includes(parseInt(currentRoute)) ? currentRoute : '';
+        routeSelect.innerHTML = '<option value="">כל הקווים</option>' + routes.map(r => 
+            `<option value="${r}" ${r == validRoute ? 'selected' : ''}>קו ${r}</option>`
+        ).join('');
+        if (!routes.includes(parseInt(currentRoute))) routeSelect.value = '';
+    }
+    
+    function updatePeriodFilters() {
+        const clusterFilter = document.getElementById('periodFilterCluster')?.value || '';
+        const subClusterFilter = document.getElementById('periodFilterSubCluster')?.value || '';
+        
+        const allClusters = [...new Set(periodsResults.map(r => r.cluster))].sort();
+        
+        // Filter subClusters based on selected cluster
+        const filteredForSubCluster = clusterFilter 
+            ? periodsResults.filter(r => r.cluster === clusterFilter)
+            : periodsResults;
+        const subClusters = [...new Set(filteredForSubCluster.map(r => r.subCluster))].filter(s => s && s !== '-').sort();
+        
+        // Filter routes based on selected cluster and subCluster
+        const filteredForRoute = periodsResults.filter(r => {
+            if (clusterFilter && r.cluster !== clusterFilter) return false;
+            if (subClusterFilter && r.subCluster !== subClusterFilter) return false;
+            return true;
+        });
+        const routes = [...new Set(filteredForRoute.map(r => r.route))].sort((a, b) => a - b);
+        
+        // Update cluster dropdown
+        const clusterSelect = document.getElementById('periodFilterCluster');
+        if (clusterSelect) {
+            const currentCluster = clusterSelect.value;
+            clusterSelect.innerHTML = '<option value="">כל האשכולות</option>' + allClusters.map(c => 
+                `<option value="${c}" ${c === currentCluster ? 'selected' : ''}>${c}</option>`
+            ).join('');
+        }
+        
+        // Update subCluster dropdown
+        const subClusterSelect = document.getElementById('periodFilterSubCluster');
+        if (subClusterSelect) {
+            const currentSubCluster = subClusterSelect.value;
+            const validSubCluster = subClusters.includes(currentSubCluster) ? currentSubCluster : '';
+            subClusterSelect.innerHTML = '<option value="">כל המק"טים</option>' + subClusters.map(s => 
+                `<option value="${s}" ${s === validSubCluster ? 'selected' : ''}>${s}</option>`
+            ).join('');
+            if (!subClusters.includes(currentSubCluster)) subClusterSelect.value = '';
+        }
+        
+        // Update route dropdown
+        const routeSelect = document.getElementById('periodFilterRoute');
+        if (routeSelect) {
+            const currentRoute = routeSelect.value;
+            const validRoute = routes.includes(parseInt(currentRoute)) ? currentRoute : '';
+            routeSelect.innerHTML = '<option value="">כל הקווים</option>' + routes.map(r => 
+                `<option value="${r}" ${r == validRoute ? 'selected' : ''}>קו ${r}</option>`
+            ).join('');
+            if (!routes.includes(parseInt(currentRoute))) routeSelect.value = '';
+        }
+    }
+    
+    function updateRoutesFilters() {
+        const clusterFilter = document.getElementById('routesFilterCluster')?.value || '';
+        const subClusterFilter = document.getElementById('routesFilterSubCluster')?.value || '';
+        
+        const allClusters = [...new Set(routesResults.map(r => r.cluster))].sort();
+        
+        // Filter subClusters based on selected cluster
+        const filteredForSubCluster = clusterFilter 
+            ? routesResults.filter(r => r.cluster === clusterFilter)
+            : routesResults;
+        const subClusters = [...new Set(filteredForSubCluster.map(r => r.subCluster))].filter(s => s && s !== '-').sort();
+        
+        // Filter routes based on selected cluster and subCluster
+        const filteredForRoute = routesResults.filter(r => {
+            if (clusterFilter && r.cluster !== clusterFilter) return false;
+            if (subClusterFilter && r.subCluster !== subClusterFilter) return false;
+            return true;
+        });
+        const routes = [...new Set(filteredForRoute.map(r => r.route))].sort((a, b) => a - b);
+        
+        // Update cluster dropdown
+        const clusterSelect = document.getElementById('routesFilterCluster');
+        if (clusterSelect) {
+            const currentCluster = clusterSelect.value;
+            clusterSelect.innerHTML = '<option value="">כל האשכולות</option>' + allClusters.map(c => 
+                `<option value="${c}" ${c === currentCluster ? 'selected' : ''}>${c}</option>`
+            ).join('');
+        }
+        
+        // Update subCluster dropdown
+        const subClusterSelect = document.getElementById('routesFilterSubCluster');
+        if (subClusterSelect) {
+            const currentSubCluster = subClusterSelect.value;
+            const validSubCluster = subClusters.includes(currentSubCluster) ? currentSubCluster : '';
+            subClusterSelect.innerHTML = '<option value="">כל המק"טים</option>' + subClusters.map(s => 
+                `<option value="${s}" ${s === validSubCluster ? 'selected' : ''}>${s}</option>`
+            ).join('');
+            if (!subClusters.includes(currentSubCluster)) subClusterSelect.value = '';
+        }
+        
+        // Update route dropdown
+        const routeSelect = document.getElementById('routesFilterRoute');
+        if (routeSelect) {
+            const currentRoute = routeSelect.value;
+            const validRoute = routes.includes(parseInt(currentRoute)) ? currentRoute : '';
+            routeSelect.innerHTML = '<option value="">כל הקווים</option>' + routes.map(r => 
+                `<option value="${r}" ${r == validRoute ? 'selected' : ''}>קו ${r}</option>`
+            ).join('');
+            if (!routes.includes(parseInt(currentRoute))) routeSelect.value = '';
+        }
+    }
+
+    function showTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById(tab + 'Tab').classList.add('active');
+    }
+
+    function sortDetailed(col) {
+        if (detailedSort.col === col) {
+            detailedSort.dir = detailedSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            detailedSort.col = col;
+            detailedSort.dir = 'desc';
+        }
+        renderDetailed();
+    }
+
+    function sortRoutes(col) {
+        if (routesSort.col === col) {
+            routesSort.dir = routesSort.dir === 'asc' ? 'desc' : 'asc';
+        } else {
+            routesSort.col = col;
+            routesSort.dir = 'desc';
+        }
+        renderRoutes();
+    }
+
+    // Filter change handlers with cascading updates
+    document.getElementById('filterCluster').addEventListener('change', () => {
+        updateDetailedFilters();
+        renderDetailed();
+    });
+    document.getElementById('filterSubCluster').addEventListener('change', () => {
+        updateDetailedFilters();
+        renderDetailed();
+    });
+    ['filterRoute', 'filterDirection', 'filterReliability'].forEach(id => {
+        document.getElementById(id).addEventListener('change', renderDetailed);
+    });
+    
+    // Period filters
+    document.getElementById('periodFilterCluster')?.addEventListener('change', () => {
+        updatePeriodFilters();
+        renderPeriods();
+    });
+    document.getElementById('periodFilterSubCluster')?.addEventListener('change', () => {
+        updatePeriodFilters();
+        renderPeriods();
+    });
+    document.getElementById('periodFilterRoute')?.addEventListener('change', renderPeriods);
+    
+    // Routes filters
+    document.getElementById('routesFilterCluster')?.addEventListener('change', () => {
+        updateRoutesFilters();
+        renderRoutes();
+    });
+    document.getElementById('routesFilterSubCluster')?.addEventListener('change', () => {
+        updateRoutesFilters();
+        renderRoutes();
+    });
+    document.getElementById('routesFilterRoute')?.addEventListener('change', renderRoutes);
+
+    // Export functions
+    function exportDetailedCSV() {
+        const headers = ['אשכול', 'תת_אשכול', 'קו', 'כיוון', 'שעה', 'נתונים', 'אמינות', 'חציון', 'P80', 'P85', 'P90', 'P95', 'סטיית_תקן', 'CV', 'המלצה'];
+        let csv = headers.join(',') + '\n';
+        
+        detailedResults.forEach(r => {
+            csv += [
+                r.cluster, r.subCluster, r.route, r.direction, `${r.hour}:00`, r.count, r.reliability.text,
+                r.median.toFixed(1), r.p80.toFixed(1), r.p85.toFixed(1), r.p90.toFixed(1), r.p95.toFixed(1),
+                r.std.toFixed(1), r.cv.toFixed(1), `P${r.recommendation.pct}`
+            ].join(',') + '\n';
+        });
+        
+        downloadCSV(csv, 'percentile_analysis_detailed.csv');
+    }
+
+    function exportPeriodsCSV() {
+        const headers = ['אשכול', 'תת_אשכול', 'קו', 'עונה', 'נתונים', 'ממוצע', 'חציון', 'P80', 'P85', 'P90', 'P95', 'סטיית_תקן', 'CV'];
+        let csv = headers.join(',') + '\n';
+        
+        periodsResults.forEach(r => {
+            csv += [
+                r.cluster, r.subCluster, r.route, r.period.name, r.count,
+                r.mean.toFixed(1), r.median.toFixed(1), r.p80.toFixed(1), r.p85.toFixed(1), r.p90.toFixed(1), r.p95.toFixed(1),
+                r.std.toFixed(1), r.cv.toFixed(1)
+            ].join(',') + '\n';
+        });
+        
+        downloadCSV(csv, 'percentile_analysis_periods.csv');
+    }
+
+    function downloadCSV(content, filename) {
+        const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+    </script>
+</body>
+</html>
